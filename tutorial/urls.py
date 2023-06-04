@@ -21,4 +21,6 @@ urlpatterns = [
 
     path('api-auth/', include('rest_framework.urls')),  # drf登录和退出的路由
     path("admin/", admin.site.urls),
+    path('course/', include('course.urls'))
+
 ]
