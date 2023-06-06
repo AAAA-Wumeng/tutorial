@@ -11,7 +11,8 @@ from course import views
 
 urlpatterns = [
     # Function Based View
-    path("fbv/list/", views.course_list, name="fbv-list")
+    path("fbv/list/", views.course_list, name="fbv-list"),
+    path("fbv/detail/<int:pk>/", views.course_detail, name='fbv-detail')
 
 ]
 

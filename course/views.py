@@ -26,3 +26,32 @@ def course_list(request):
             course.save(teacher=request.user)
             return Response(status=status.HTTP_201_CREATED, data=course.data)
         return Response(status=status.HTTP_400_BAD_REQUEST, data=course.errors)
+
+
+@api_view(["GET", "PUT", "DELETE"])
+def course_detail(request, pk):
+    """
+    获取、更新、删除一个课程
+    :param request:
+    :param pk:
+    :return:
+    """
+    try:
+        course = Course.objects.get(pk=pk)
+    except Course.DoesNotExist:
+        return Response(data={"msg": "没有此课程信息"}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        # 查到了课程信息，相关的操作发放到else
+        if request.method == "GET":
+            course = CourseSerializers(instance=course)
+            return Response(data=course.data, status=status.HTTP_200_OK)
+        if request.method == "PUT":
+            course = CourseSerializers(instance=course, data=request.data)
+            if course.is_valid():
+                course.save()
+                return Response(data=course.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(data=course.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.method == "DELETE":
+            course.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
