@@ -12,7 +12,10 @@ from course import views
 urlpatterns = [
     # Function Based View
     path("fbv/list/", views.course_list, name="fbv-list"),
-    path("fbv/detail/<int:pk>/", views.course_detail, name='fbv-detail')
+    path("fbv/detail/<int:pk>/", views.course_detail, name='fbv-detail'),
+    # class Based View
+    path("cbv/list/", views.CourseList.as_view(), name="class-list"),
+    path("cbv/detail/<int:pk>/", views.CourseDetail.as_view(), name="class-list")
 
 ]
 

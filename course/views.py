@@ -3,6 +3,7 @@ from rest_framework import status
 # drf的函数式编程
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from course.models import Course
 from course.serializers import CourseSerializers
 
@@ -55,3 +56,76 @@ def course_detail(request, pk):
         if request.method == "DELETE":
             course.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+"""
+类视图
+"""
+
+
+class CourseList(APIView):
+
+    def get(self, request):
+        """
+        :param request:
+        :return:
+        """
+        course_queryset = Course.objects.all()
+        # 注意这里的many参数，当查询是是用的是all()，即使只有一条数据，设置为True也不会有任何影响，但是如果是get或first进行查询，就不需要设置many参数
+        course = CourseSerializers(instance=course_queryset, many=True)  # instance是查询集
+        return Response(data=course.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        :param request:
+        :return:
+        """
+        course = CourseSerializers(data=request.data)
+        if course.is_valid():
+            # 这里需要加上teacher参数
+            course.save(teacher=self.request.user)
+            print(f"request.data的数据类型是：{type(request.data)},course.data的数据类型是：{type(course.data)}")
+            return Response(course.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(course.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CourseDetail(APIView):
+    @staticmethod
+    def get_object(pk):
+        try:
+            return Course.objects.get(pk=pk)
+        except Course.DoesNotExist:
+            return
+
+    def get(self, request, pk):
+        """
+
+        :param request:
+        :param pk:
+        :return:
+        """
+        obj = self.get_object(pk)
+        if not obj:
+            return Response(data={"msg": "没有此课程信息"}, status=status.HTTP_404_NOT_FOUND)
+        course = CourseSerializers(instance=obj)
+        return Response(data=course, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response(data={"msg": "没有此课程信息"}, status=status.HTTP_404_NOT_FOUND)
+
+        course = CourseSerializers(instance=obj, data=request.data)
+
+        if course.is_valid():
+            course.save()
+            return Response(data=course.data, status=status.HTTP_201_CREATED)
+        return Response(course.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response(data={"msg": "没有此课程信息"})
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
